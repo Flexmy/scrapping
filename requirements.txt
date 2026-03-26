@@ -1,0 +1,9 @@
+undetected-chromedriver==3.5.5
+selenium==4.21.0
+pandas
+numpy
+openpyxl
+# Required for running the Jupyter notebook headlessly in GitHub actions
+jupyter
+nbconvert
+ipykernel
