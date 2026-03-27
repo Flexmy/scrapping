@@ -27,17 +27,19 @@ jobs:
           python -m ipykernel install --user --name python3
 
       - name: 🚀 Execute notebook
-        # Chrome is gone! We just run Jupyter normally now.
+        # Changed timeout to -1 allowing the notebook infinite time to process all 1,172 cars!
         run: |
           jupyter nbconvert \
             --to notebook \
             --execute Scrapping.ipynb \
             --output Scrapping_executed.ipynb \
-            --ExecutePreprocessor.timeout=600
+            --ExecutePreprocessor.timeout=-1
         env:
           CI: "true"
 
       - name: 📤 Commit results
+        # Force GitHub to ALWAYS run this commit step and upload your CSVs, even if Python crashes!
+        if: always()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -47,6 +49,7 @@ jobs:
 
       - name: 📎 Upload executed notebook
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: executed-notebook
           path: Scrapping_executed.ipynb
