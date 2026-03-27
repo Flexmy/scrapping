@@ -1,14 +1,17 @@
 name: Pitstop Scraper
+
 on:
   schedule:
     - cron: '0 2 * * *'
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
@@ -18,59 +21,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      # ---> ADDED XVFB HERE <---
-      - name: 🌐 Install Chrome 146 + Driver 146 + Xvfb 
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip xvfb
-          
-          # Install Chrome 146
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/146.0.7680.0/linux64/chrome-linux64.zip
-          unzip -q chrome-linux64.zip
-          sudo mv chrome-linux64 /opt/chrome146
-          sudo chmod +x /opt/chrome146/chrome
-          
-          # Install ChromeDriver 146
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/146.0.7680.0/linux64/chromedriver-linux64.zip
-          unzip -q chromedriver-linux64.zip
-          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver146
-          sudo chmod +x /usr/local/bin/chromedriver146
-          
-          # Copy to all possible paths
-          sudo cp /usr/local/bin/chromedriver146 /usr/local/bin/chromedriver
-          sudo cp /usr/local/bin/chromedriver146 /usr/bin/chromedriver
-          mkdir -p ~/.local/share/undetected_chromedriver
-          cp /usr/local/bin/chromedriver146 ~/.local/share/undetected_chromedriver/chromedriver
-          chmod +x ~/.local/share/undetected_chromedriver/chromedriver
-
-      - name: 🔍 Debug versions
-        run: |
-          echo "=== Chrome locations ==="
-          which google-chrome || echo "google-chrome not found"
-          which chromium-browser || echo "chromium not found"
-          ls /opt/chrome146/chrome || echo "opt/chrome146 not found"
-          
-          echo "=== Chrome versions ==="
-          /opt/chrome146/chrome --version || echo "opt chrome failed"
-          google-chrome --version || echo "google-chrome failed"
-          
-          echo "=== ChromeDriver versions ==="
-          /usr/local/bin/chromedriver146 --version
-          /usr/local/bin/chromedriver --version
-          ~/.local/share/undetected_chromedriver/chromedriver --version
-          
-          echo "=== PATH ==="
-          echo $PATH
-
       - name: 📦 Install Python packages
         run: |
           pip install -r requirements.txt
           python -m ipykernel install --user --name python3
 
-      # ---> ADDED XVFB-RUN TO THIS COMMAND <---
-      - name: 🚀 Execute notebook with Xvfb
+      - name: 🚀 Execute notebook
+        # Chrome is gone! We just run Jupyter normally now.
         run: |
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" jupyter nbconvert \
+          jupyter nbconvert \
             --to notebook \
             --execute Scrapping.ipynb \
             --output Scrapping_executed.ipynb \
@@ -83,7 +42,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add output/
-          git diff --staged --quiet || git commit -m "🔄 Scrape: $(date +'%Y-%m-%d %H:%M UTC')"
+          git diff --staged --quiet || git commit -m "🔄 Scrape API: $(date +'%Y-%m-%d %H:%M UTC')"
           git push
 
       - name: 📎 Upload executed notebook
